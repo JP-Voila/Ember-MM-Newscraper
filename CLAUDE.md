@@ -109,8 +109,10 @@ docs/WORKLOG.md             Agent worklog: status, open items, investigations, h
 docs/BUGS.md                Owner-reported bugs (BUG-NNN): symptom, findings, status
 docs/INVENTORY.md           What every project/file does, key flows, state, change seams
 docs/TEST_STANDARD.md       What a test must be; test layers; bug lane
+docs/SETTINGS.md            Dev-build defaults: modules/scrapers on/off, key behaviour flags
 docs/tmp/                   Git-ignored scratch: owner logs, test output
 tools/New-TestLibrary.ps1   Creates the git-ignored L3 test library in testlib/
+tools/Export-DefaultSettings.ps1  Dumps the build's default Settings.xml (+ flat listing)
 ImageSources/, SourceImages/  Design source art (not compiled)
 Changelog.txt               Historic changelog (top entry is 1.4.7.2 / 2015 — stale)
 ```
