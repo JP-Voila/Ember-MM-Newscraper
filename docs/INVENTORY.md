@@ -34,7 +34,10 @@ Modules\<addon>\*.dll   ── scrapers (Data/Image/Trailer/Theme) + generic mod
 
 ## 2. Projects
 
-### In the solution (32: the app, EmberAPI, TVDB, KodiAPI + 28 addons)
+### In the solution (31: the app, EmberAPI, TVDB, KodiAPI + 27 addons)
+
+The old `generic.EmberCore.TagManager` addon was removed from the solution on
+2026-11-01 (BUG-005). Its files remain on disk.
 
 | Project | Folder | Role | Extra refs / packages |
 |---|---|---|---|
@@ -42,7 +45,7 @@ Modules\<addon>\*.dll   ── scrapers (Data/Image/Trailer/Theme) + generic mod
 | EmberAPI | `EmberAPI/` | Core library (see §4) | SQLite 1.0.115.5, NLog 4.7.14, Newtonsoft 13, **VideoLibrary 3.1.9** (YouTube), NiL.JS |
 | TVDB | `External/TheTVDBApi/src/TVDB/` | Vendored C# client for TheTVDB **legacy XML API** | — (net4.5) |
 | KodiAPI | `KodiAPI/` | C# Kodi JSON-RPC client | Newtonsoft 13 (net4.5) |
-| *Addons* | `Addons/…` | 28 addon projects, see §3 | each refs EmberAPI |
+| *Addons* | `Addons/…` | 27 addon projects, see §3 | each refs EmberAPI |
 
 ### On disk but **not** in the solution (dead; not built)
 
@@ -121,7 +124,7 @@ and/or add menus and settings panels. `Generic` = adds UI only.
 | generic.EmberCore.Mapping | MappingManager | Edit genre/country/certification/studio/status mappings (`Core.Mapping.*.xml`) | — |
 | generic.EmberCore.MediaFileManager | (Media File Manager) | "Copy To" and **"Move To"** for selected movies/shows to configured folders (Move changes media on disk) | — |
 | generic.EmberCore.MovieExport | MovieListExporter | Export the movie list via HTML templates | CommandLine |
-| generic.EmberCore.TagManager | Tag Manager | Manage tags across the library. **Does not compile at HEAD**: superseded upstream (d08f4dae) by the in-app Tools → Tag Manager (`EmberMediaManager/dlgTagManager.vb`) | CommandLine |
+| generic.EmberCore.TagManager | Tag Manager | **Not in the solution since 2026-11-01** (BUG-005). Movies only. Superseded upstream (d08f4dae) by the in-app Tools → Tag Manager (`EmberMediaManager/dlgTagManager.vb`), which covers movies and TV shows. Its `CommandLine` hook was a no-op | (CommandLine, no-op) |
 | generic.EmberCore.VideoSourceMapping | Media Sources Editor | Assign a video source label (BluRay, DVD, …) by file extension or search string | — |
 | generic.Embercore.MetadataEditor | Audio & Video Codec Mapping | Codec name mapping for media info | — |
 | generic.Interface.Kodi | Kodi | Push changes to Kodi hosts over JSON-RPC (sync, remove, notify). **Owner does not use it** | BeforeEdit_Movie/TVEpisode, Remove_*, ScraperMulti/Single_*, Sync_* (`Interface.Kodi.vb:104-124`). It *raises* AfterEdit events but doesn't subscribe to them |

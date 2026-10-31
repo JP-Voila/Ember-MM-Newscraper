@@ -186,7 +186,8 @@ sets" settings. The movie-set DB linking in `EmberAPI/clsAPIDatabase.vb`.
 ## BUG-005 — Old Tag Manager addon no longer compiles
 
 - **Reported:** 2026-10-31. **Found by:** first command-line build
-- **Status:** open (blocks a clean solution build)
+- **Status:** **fixed** 2026-11-01: project removed from the solution (files kept on
+  disk). Tag management now relies on the in-app Tag Manager; BUG-006 still to fix there.
 - **Content type:** Movie / TV show tags
 
 **Symptom.** `Addons/generic.EmberCore.TagManager` fails to build:
@@ -201,9 +202,12 @@ installed 1.11.1 has a working Tag Manager, but it isn't known which of the two 
 
 - The old addon also registers a `CommandLine` hook (`Module.Tag.vb:61`). The in-app one
   has no command-line equivalent.
-- Owner wants a working Tag Manager. Options: drop the old addon from the solution
-  (keep the files) and rely on the in-app one, fixing BUG-006 first; or port the addon
-  to the current tag API.
+- Owner wants a working Tag Manager. Options weighed: drop the old addon and rely on
+  the in-app one, or port the addon to the current tag API. The owner chose to drop it
+  (2026-11-01). The old addon was movies-only and its `CommandLine` hook was a no-op
+  (`RunGeneric` returns an empty result), so nothing it offered is lost.
+- To reverse: add `Addons\generic.EmberCore.TagManager\generic.EmberCore.TagManager.vbproj`
+  back to the solution. It still won't compile without a port.
 
 ---
 
