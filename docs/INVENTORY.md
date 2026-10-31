@@ -57,7 +57,9 @@ Deleting these would be a pure clean-up with no runtime effect. Not done yet.
 
 ### Build output
 
-`..\EmberMM - <Config> - <Platform>\` (sibling of the repo). Each addon builds into
+`<repo>\EmberMM - <Config> - <Platform>\`. Every `OutputPath` is `..\` (or `..\..\` for
+addons) relative to its project, which resolves to the repo root, and `EmberMM*/` is
+git-ignored. Each addon builds into
 `Modules\<lower-case project name>\`, with two exceptions:
 - **`scraper.Trailer.TMDB` and `scraper.Image.TMDB` share
   `Modules\scraper.image.tmdb\`.** Harmless (both use TMDbLib), but removing one folder
@@ -119,7 +121,7 @@ and/or add menus and settings panels. `Generic` = adds UI only.
 | generic.EmberCore.Mapping | MappingManager | Edit genre/country/certification/studio/status mappings (`Core.Mapping.*.xml`) | — |
 | generic.EmberCore.MediaFileManager | (Media File Manager) | "Copy To" and **"Move To"** for selected movies/shows to configured folders (Move changes media on disk) | — |
 | generic.EmberCore.MovieExport | MovieListExporter | Export the movie list via HTML templates | CommandLine |
-| generic.EmberCore.TagManager | Tag Manager | Manage tags across the library | CommandLine |
+| generic.EmberCore.TagManager | Tag Manager | Manage tags across the library. **Does not compile at HEAD**: superseded upstream (d08f4dae) by the in-app Tools → Tag Manager (`EmberMediaManager/dlgTagManager.vb`) | CommandLine |
 | generic.EmberCore.VideoSourceMapping | Media Sources Editor | Assign a video source label (BluRay, DVD, …) by file extension or search string | — |
 | generic.Embercore.MetadataEditor | Audio & Video Codec Mapping | Codec name mapping for media info | — |
 | generic.Interface.Kodi | Kodi | Push changes to Kodi hosts over JSON-RPC (sync, remove, notify). **Owner does not use it** | BeforeEdit_Movie/TVEpisode, Remove_*, ScraperMulti/Single_*, Sync_* (`Interface.Kodi.vb:104-124`). It *raises* AfterEdit events but doesn't subscribe to them |
@@ -284,7 +286,7 @@ From most isolated to least:
 2. Prefer fixing inside the addon over fixing in EmberAPI, and EmberAPI over frmMain,
    when either would close the defect.
 3. **The dev build is already isolated from the installed copy.** It runs from
-   `..\EmberMM - Debug - x64\` with its own `Profiles\`, DB and settings (profiles
+   `<repo>\EmberMM - Debug - x64\` with its own `Profiles\`, DB and settings (profiles
    resolve relative to the exe). What can still be shared:
    - **media folders**: point the dev profile's sources at a small test folder with
      copied media (and copied NFOs/images) before testing anything that saves;

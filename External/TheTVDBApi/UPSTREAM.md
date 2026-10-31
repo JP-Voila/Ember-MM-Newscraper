@@ -29,4 +29,6 @@ Left out: `TheTVDBApi.sln`, `src/TVDBDocumentation/` (Sandcastle help project),
 
 ## Local changes
 
-_None yet._
+- 2026-10-31 (`9297ff1b`): `TVDB.csproj` retargeted from .NET Framework 4.5 to 4.8.
+  Current Visual Studio has no 4.5 targeting pack. All consumers already target 4.8.
+  No source change.

@@ -21,7 +21,9 @@ CLAUDE.md.
   unscraped show) has its root cause found, fix option not chosen yet. BUG-002 (regex
   filter), BUG-003 (trailers) and BUG-004 (Kodi sets) are open.
 - Development is now in a **local Windows** Claude Code session (`D:\Ember-MM-Newscraper`).
-  The TheTVDBApi repointing is still not build-verified.
+- **Build:** 31/32 projects build from the command line (Debug|x64). The TheTVDBApi
+  repointing compiles. Only the old TagManager addon fails. The dev build has not been
+  run yet.
 
 ## Open items
 
@@ -30,8 +32,11 @@ CLAUDE.md.
 - [ ] Owner's bug list — being recorded in [BUGS.md](BUGS.md) as reported.
 - [ ] Set up testing per TEST_STANDARD: L1 command-line build (needs the 4.8 targeting
       pack), L2 new MSTest project in the solution, L3 test library + generator script.
-- [ ] Record the exact working build command for the owner's machine in CLAUDE.md
-      (Visual Studio version, MSBuild path/command, configuration used).
+- [ ] `generic.EmberCore.TagManager` addon doesn't compile (superseded upstream by the
+      in-app Tag Manager). Owner to decide: drop it from the solution, or port it.
+- [ ] NuGet advisory: Newtonsoft.Json 12.0.3 in the two Trakt projects (NU1903). Decide
+      whether to align them on 13.0.1 as a separate change.
+- [x] Exact build command recorded in CLAUDE.md (2026-10-31).
 - [ ] Version numbers disagree: assemblies say `1.11.1.0`
       (`EmberMediaManager/My Project/AssemblyInfo.vb`), installer scripts say `1.12.0`
       (`BuildSetup/0_BuildSetup_x64.bat`), `Changelog.txt` stops at `1.4.7.2` (2015).
@@ -115,8 +120,8 @@ file only holds the last download.
   via PowerShell (`irm https://claude.ai/install.ps1 | iex`, then reopen the terminal).
   Running from a "Developer PowerShell for VS" prompt puts MSBuild on PATH.
 - Keep the clone separate from the owner's installed copy of Ember. Build output goes to
-  sibling folders `..\EmberMM - <Config> - <Platform>\`, so clone into a dedicated parent
-  folder (e.g. `C:\Dev\`), not a drive root.
+  `<repo>\EmberMM - <Config> - <Platform>\` (inside the repo, git-ignored). The clone at
+  `D:\Ember-MM-Newscraper` is fine.
 - The old sibling `..\TheTVDBApi` clone is no longer used.
 
 ---
@@ -144,11 +149,24 @@ file only holds the last download.
 
   Dropped: frontend/React, money arithmetic, clock-drift, fences, review-round
   calibration, the execution ledger.
-- Build environment: VS Build Tools 2026 (MSBuild 18, vbc, vstest.console) present;
-  .NET Framework 4.8 targeting pack was missing; the owner installed it (`v4.8` reference
-  assemblies now present). No build attempted yet. TVDB and
-  KodiAPI target 4.5, which current VS no longer ships; plan is to retarget those two to
-  4.8 in their own commit.
+- Build environment: VS Build Tools 2026 (MSBuild 18, vbc, vstest.console). The owner
+  installed the .NET Framework 4.8 targeting pack.
+- **First build (Debug|x64).** Upstream HEAD did **not** compile: its last commits
+  (2242d240, c7235061, Nov/Dec 2022) were an unfinished cleanup.
+  - `3da4d639` restored the removed import/enum and fixed two half-renames.
+  - `9297ff1b` retargeted TVDB + KodiAPI to 4.8.
+  - Result: 31 of 32 projects build, including `EmberAPI` and the exe.
+  - Still failing: `generic.EmberCore.TagManager`. It calls `Database.Save_Tag_Movie` /
+    `Delete_Tag`, which upstream removed in d08f4dae when it built a replacement Tag
+    Manager into the app (Tools → Tag Manager, `EmberMediaManager/dlgTagManager.vb`).
+    Owner decision pending.
+- Build output is **inside** the repo (`<repo>\EmberMM - Debug - x64\`, git-ignored),
+  not a sibling folder as the docs had said; docs corrected.
+- NuGet restore warns NU1903: `Newtonsoft.Json` 12.0.3 (high, GHSA-5crp-9r3c-p9vr) in
+  `generic.Interface.Trakttv` and `scraper.Data.Trakttv`. Not changed (no package
+  upgrades as a side effect); listed in open items.
+- Implication: the owner's installed exe was built from an earlier commit than HEAD. Its
+  behaviour may differ from this code (e.g. which Tag Manager exists).
 - `clsAPIHTTP.vb` logs full request URLs on error. The owner ruled API-key leakage a
   non-issue (the built-in keys are already public), so it is not tracked. Only
   end-user-supplied credentials (Kodi password, Trakt token, personal API keys entered

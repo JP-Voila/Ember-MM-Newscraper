@@ -50,8 +50,18 @@ SQLite interop DLLs in `EmberAPI/x86` and `EmberAPI/x64`).
   conversions, `Handles` clauses, `Implements` signatures, designer-generated control
   names, and `ByRef`/`ByVal` changes. Grep for every caller before changing a signature.
 - On Windows: open `Ember Media Manager.sln` in Visual Studio, restore NuGet packages,
-  build `Debug|x64` (or x86). Output goes to `..\EmberMM - <Config> - <Platform>\`
-  (a sibling of the repo folder, not inside it); addons build into its `Modules\` subfolder.
+  build `Debug|x64` (or x86). Output goes to `<repo>\EmberMM - <Config> - <Platform>\`,
+  **inside** the repo root and git-ignored (`EmberMM*/`). Addons build into its
+  `Modules\` subfolder.
+- **Command-line build (verified 2026-10-31, VS Build Tools 2026 + .NET 4.8 targeting
+  pack):**
+  ```
+  MSBuild.exe "Ember Media Manager.sln" -t:restore -p:RestorePackagesConfig=true -p:Configuration=Debug -p:Platform=x64
+  MSBuild.exe "Ember Media Manager.sln" -p:Configuration=Debug -p:Platform=x64 -m -v:minimal
+  ```
+  MSBuild lives at
+  `C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\MSBuild\Current\Bin\`.
+  Restore puts packages in `<repo>\packages\` (git-ignored).
 - **Vendored dependency:** `External/TheTVDBApi/` is a copy of
   [DanCooper/TheTVDBApi](https://github.com/DanCooper/TheTVDBApi) (C#, GPL v3) used by
   `scraper.Data.TVDB` and `scraper.Image.TVDB`. It is now maintained here — edit it in
