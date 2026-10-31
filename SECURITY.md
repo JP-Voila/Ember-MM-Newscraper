@@ -50,7 +50,9 @@ These are inherited from upstream and are documented here so they are not made w
 3. **Third-party binaries are committed** (`.nuget/NuGet.exe`, `BuildSetup/*.exe`,
    `BuildSetup/pcre.dll`, native SQLite interop DLLs under `EmberAPI/x86|x64`). Their
    provenance is upstream; replace from official sources if in doubt.
-4. **Dependencies are dated** (packages last updated ~2022). Check advisories before
+4. **Vendored source** under `External/` (currently `TheTVDBApi`, last upstream change
+   2019) is unmaintained upstream; it parses remote XML responses and is in scope for review.
+5. **Dependencies are dated** (packages last updated ~2022). Check advisories before
    relying on any package for parsing untrusted input.
 
 ## Guidance for contributors and AI agents

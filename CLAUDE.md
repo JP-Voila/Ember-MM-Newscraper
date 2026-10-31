@@ -48,9 +48,11 @@ SQLite interop DLLs in `EmberAPI/x86` and `EmberAPI/x64`).
 - On Windows: open `Ember Media Manager.sln` in Visual Studio, restore NuGet packages,
   build `Debug|x64` (or x86). Output goes to `..\EmberMM - <Config> - <Platform>\`
   (a sibling of the repo folder, not inside it); addons build into its `Modules\` subfolder.
-- **External project dependency:** the solution references
-  `..\TheTVDBApi\src\TVDB\TVDB.csproj`, which lives *outside* this repo (a sibling clone).
-  `scraper.Data.TVDB` and `scraper.Image.TVDB` will not build without it.
+- **Vendored dependency:** `External/TheTVDBApi/` is a copy of
+  [DanCooper/TheTVDBApi](https://github.com/DanCooper/TheTVDBApi) (C#, GPL v3) used by
+  `scraper.Data.TVDB` and `scraper.Image.TVDB`. It is now maintained here — edit it in
+  place and log changes in `External/TheTVDBApi/UPSTREAM.md`. It targets TheTVDB's
+  legacy XML API, which TheTVDB has been retiring in favour of API v4.
 - `EmberAPI_Test` is an MSTest project that is **not included in the solution** and is
   largely stale (references NLog 3.1 / `UnitTestFramework` 10.x). Don't rely on it; if you
   add tests, say so and note they have not been run.
@@ -82,6 +84,7 @@ Addons/                     Plug-in modules, one project each
   scraper.<Kind>.<Source>   Data / Image / Trailer / Theme scrapers
   generic.EmberCore.*       Built-in tools (BulkRename, TagManager, MovieExport, …)
   generic.Interface.*       Integrations (Kodi JSON-RPC, Trakt.tv)
+External/TheTVDBApi/        Vendored C# TVDB client (see UPSTREAM.md in that folder)
 KodiAPI/                    C# Kodi JSON-RPC client library
 Trakttv/                    C# Trakt.tv API client library
 BuildSetup/                 Installer scripts and Transifex download tooling
@@ -161,5 +164,6 @@ Apple trailers, Dave's trailer page, TelevisionTunes) are the most likely to be 
 - Don't commit secrets, API keys, personal media paths, `Settings.xml`, databases
   (`*.emm`) or log files. See SECURITY.md about the API keys already in the source.
 - Don't upgrade NuGet packages or retarget frameworks as a side effect of a bug fix.
-- Don't add new project references to paths outside the repo.
+- Don't add new project references to paths outside the repo. Third-party source goes
+  under `External/<name>/` with an `UPSTREAM.md` recording source, commit and licence.
 - Don't change `MyVideosDBVersion` or delete DB patch files without an explicit request.
