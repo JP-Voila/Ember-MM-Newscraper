@@ -282,3 +282,66 @@ behaviour change.
 **Implication.** The owner's installed 1.11.1 exe was built from an earlier commit. Its
 behaviour can differ from this code in places. When a bug doesn't reproduce in the dev
 build, check whether that code changed after the owner's build.
+
+---
+
+## BUG-010 — App crashes on start with a new profile: "Could not find file …\Settings.xml"
+
+- **Reported:** 2026-11-01 (owner, first launch of the dev build)
+- **Status:** **fixed**, see the commit `fixed: BUG-010 …`
+- **Content type:** startup / settings
+
+**Symptom.** Starting with a profile that has no `Settings.xml` yet (first run, or any new
+profile) shows `Could not find file '…\Profiles\Default\Settings.xml'` and the app
+terminates. Log: `MyApplication_UnhandledException` → `FileNotFoundException` at
+`EmberAPI.Settings.Load()` `clsAPISettings.vb:line 1119`, called from
+`ApplicationEvents.vb:line 149`.
+
+**Root cause.** `Settings.Load` opened `New StreamReader(configpath)` on the first line,
+*before* its `If File.Exists(configpath)` check and outside the `Try`. Introduced upstream
+in `87736ca3` (2022-04-02, "fixed: new/updated settings.xml can't be saved…"), so any new
+profile has crashed since then. Existing installs never hit it because their profile
+already has the file.
+
+**Fix.** Open the reader only if the file exists; close it only if it was opened.
+2 lines changed in `clsAPISettings.vb`. No other behaviour change.
+
+**Enumerate-first check.** Every other `New StreamReader(` in EmberAPI, the app and the
+addons that runs at startup is already guarded by `File.Exists` and/or `Try`:
+AdvancedSettings, Profiles, ScraperLanguages, Genre/Simple mappings, Kodi, Trakt.
+`AdvancedSettings.SetDefaults` reads only shipped `Defaults\` files.
+
+**Verification (no test project yet; L2-style scripts against the built `EmberAPI.dll`,
+kept in the session scratchpad):**
+- Repro: empty temp profile → `Settings.Load()`. Before the fix: threw
+  `FileNotFoundException` (the owner's error). After: returns normally.
+- Round trip: `Load` → set `MovieSkipLessThan = 7` (non-default) → `Save` → reset →
+  `Load` gives `7`. Existing files still load and are really read.
+- **To do:** port both as the first tests when the L2 test project exists.
+
+**L4 for the owner.** Launch `EmberMM - Debug - x64\Ember Media Manager.exe` with
+`Profiles\Default` empty. It should start, and `Settings.xml` should appear in that folder
+after closing.
+
+---
+
+## BUG-011 — "Repair Settings.xml" can never succeed; falls back to all-default settings
+
+- **Reported:** 2026-11-01. **Found by:** code reading (while fixing BUG-010)
+- **Status:** open (latent)
+- **Content type:** startup / settings
+
+**Findings.** `Settings.Load` (`EmberAPI/clsAPISettings.vb` ~1117-1155). If deserializing
+`Settings.xml` throws (e.g. an old enum value such as `PrefSize>Xlrg<`), the catch block
+tries to repair the text. But it calls `xmlReader.ReadToEnd` on the **same stream** the
+failed `Deserialize` already consumed, so it gets only the leftover tail, or nothing.
+The repair regexes therefore never see the file. The second deserialize fails, the file is
+copied to `Settings.xml_backup`, and **all settings reset to defaults**. Before
+`87736ca3` the repair re-opened the file with its own reader.
+
+**Impact.** Only when `Settings.xml` is damaged or from a much older version. The user
+silently loses every setting (the backup file is kept).
+
+**Likely fix.** Re-read the file (`File.ReadAllText(configpath)`) in the repair path.
+Test: a `Settings.xml` containing `PrefSize>Xlrg<` should load with `Any`, not with
+defaults.

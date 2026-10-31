@@ -1116,7 +1116,8 @@ Public Class Settings
 
     Public Sub Load()
         Dim configpath As String = Path.Combine(Master.SettingsPath, "Settings.xml")
-        Dim xmlReader As New StreamReader(configpath)
+        'BUG-010: a new profile has no Settings.xml yet; opening it unconditionally threw before the File.Exists check
+        Dim xmlReader As StreamReader = If(File.Exists(configpath), New StreamReader(configpath), Nothing)
 
         Try
             If File.Exists(configpath) Then
@@ -1152,7 +1153,7 @@ Public Class Settings
                 _Logger.Warn("Attempt to repair the Settings.xml has failed. The file has been backed up and the default settings has been loaded.")
             End Try
         End Try
-        xmlReader.Close()
+        If xmlReader IsNot Nothing Then xmlReader.Close()
 
         SetDefaultsForLists(Enums.DefaultType.All, False)
 

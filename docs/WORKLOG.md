@@ -176,6 +176,10 @@ file only holds the last download.
   solution is green. Warning baseline: 204, all pre-existing. Kinds: MSB3277 package
   version conflicts, CS0472 in the C# libs, BC40008 obsolete APIs, a few others. Added
   `tools/New-TestLibrary.ps1` and verified its guards and the nested-repo diff.
+- 2026-11-01: the owner's first launch of the dev build crashed: BUG-010, missing
+  `Settings.xml` on a new profile, an upstream 2022 regression. Fixed; reproduced red
+  before the fix with a script against `EmberAPI.dll`, since there is no test project
+  yet. Logged BUG-011, found alongside: Settings.xml repair can't work.
 - `clsAPIHTTP.vb` logs full request URLs on error. The owner ruled API-key leakage a
   non-issue (the built-in keys are already public), so it is not tracked. Only
   end-user-supplied credentials (Kodi password, Trakt token, personal API keys entered
