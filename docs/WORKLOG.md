@@ -21,9 +21,13 @@ CLAUDE.md.
   unscraped show) has its root cause found, fix option not chosen yet. BUG-002 (regex
   filter), BUG-003 (trailers) and BUG-004 (Kodi sets) are open.
 - Development is now in a **local Windows** Claude Code session (`D:\Ember-MM-Newscraper`).
-- **Build:** 31/32 projects build from the command line (Debug|x64). The TheTVDBApi
-  repointing compiles. Only the old TagManager addon fails. The dev build has not been
-  run yet.
+- **Build: green.** All 31 solution projects build from the command line
+  (Debug|x64 clean rebuild, 0 errors, 2026-11-01), after the old TagManager addon was
+  removed from the solution (BUG-005). The dev build has **not been launched** yet.
+- **Test library ready:** `tools/New-TestLibrary.ps1` → `testlib/` (git-ignored, own
+  nested repo). **Next:** owner's first launch of the dev build with a fresh profile
+  pointed at `testlib\Movies` and `testlib\TV Shows`. Disable the Trakt/Kodi addons,
+  the metadata scan and frame extraction. Then L2 test project.
 
 ## Open items
 
@@ -32,8 +36,9 @@ CLAUDE.md.
 - [ ] Owner's bug list — being recorded in [BUGS.md](BUGS.md) as reported.
 - [ ] Set up testing per TEST_STANDARD: L1 command-line build (needs the 4.8 targeting
       pack), L2 new MSTest project in the solution, L3 test library + generator script.
-- [ ] Tag Manager must work (owner, 2026-10-31). BUG-005 (old addon doesn't compile) +
-      BUG-006 (in-app one likely re-adds removed tags). Owner to pick the approach.
+- [ ] Tag Manager must work (owner, 2026-10-31). Approach chosen: in-app Tag Manager.
+      BUG-005 fixed (old addon out of the solution); BUG-006 to fix via the bug lane.
+- [ ] L3 first launch on `testlib/` (owner), then capture real NFOs as fixtures.
 - [ ] NuGet advisory: Newtonsoft.Json 12.0.3 in the two Trakt projects (NU1903). Decide
       whether to align them on 13.0.1 as a separate change.
 - [x] Exact build command recorded in CLAUDE.md (2026-10-31).
@@ -167,6 +172,10 @@ file only holds the last download.
   upgrades as a side effect); listed in open items.
 - Implication: the owner's installed exe was built from an earlier commit than HEAD. Its
   behaviour may differ from this code (e.g. which Tag Manager exists).
+- 2026-11-01: removed old TagManager addon from the solution (BUG-005). The full
+  solution is green. Warning baseline: 204, all pre-existing. Kinds: MSB3277 package
+  version conflicts, CS0472 in the C# libs, BC40008 obsolete APIs, a few others. Added
+  `tools/New-TestLibrary.ps1` and verified its guards and the nested-repo diff.
 - `clsAPIHTTP.vb` logs full request URLs on error. The owner ruled API-key leakage a
   non-issue (the built-in keys are already public), so it is not tracked. Only
   end-user-supplied credentials (Kodi password, Trakt token, personal API keys entered

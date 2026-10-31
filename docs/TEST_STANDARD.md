@@ -187,16 +187,38 @@ the test name or comment, so a later fix knows which assertion is expected to fl
 
 A disposable media folder for anything that writes to disk:
 
-- **Lives outside the repo** (e.g. `C:\Dev\EmberTestLibrary\`) and is its **own git
-  repo**. Commit the starting state. After a test run:
-  - `git status` / `git diff` show exactly which NFO/image files Ember created, changed
-    or deleted;
-  - `git reset --hard && git clean -fd` restores it.
-- **Contents:** small dummy video files with realistic names (e.g.
-  `Show (Year)\Season 1\Show.S01E01.mkv`, `Movie (Year)\Movie.mkv`), plus captured NFOs
-  for the "existing library" cases. A generator script, once written, lives in the repo
-  and creates it reproducibly. Dummy files mean MediaInfo/FFmpeg results are not
-  meaningful there.
+- **Created by `tools/New-TestLibrary.ps1`** into `<repo>\testlib\`, which the main
+  repo ignores (`.gitignore`). The script makes `testlib\` its **own git repo** with the
+  starting state committed:
+  ```
+  powershell -ExecutionPolicy Bypass -File tools\New-TestLibrary.ps1          # create
+  powershell -ExecutionPolicy Bypass -File tools\New-TestLibrary.ps1 -Force   # recreate
+  ```
+- **After a test run:**
+  - `git -C testlib status` / `git -C testlib diff` show exactly which NFO/image files
+    Ember created, changed or deleted;
+  - `git -C testlib reset --hard; git -C testlib clean -fdx` restores it.
+- **Safety.** The script only deletes a folder that carries its marker file
+  `.ember-testlib`, so pointing `-Path` at real media fails. It does not wipe the
+  folder. Verified 2026-11-01, along with: the nested repo detects created, modified
+  and deleted files; restore works; the main repo ignores the folder.
+- **Contents:** 26 dummy video files (1 KB of zeros) with realistic names, grouped by the
+  case they exercise:
+  - plain movies in `.mkv`/`.avi`/`.mp4`;
+  - a 3-film collection (sets, BUG-004);
+  - stacked `cd1`/`cd2` files;
+  - `VIDEO_TS` and `BDMV` folders;
+  - filter/punctuation titles (BUG-002);
+  - a new show with seasons 1, 2 and 0 (BUG-001);
+  - a second show with a multi-episode file;
+  - date-based episodes.
+
+  The list is in the script.
+- **Dummy files have no streams.** MediaInfo/FFmpeg results are meaningless. Turn off the
+  metadata scan and frame extraction in the test profile.
+- **No NFOs are generated.** "Existing library" cases need captured NFOs (§3). Once Ember
+  has scraped the test library, copy chosen NFOs into the script's fixtures, recording
+  source and date.
 - **The dev profile points only at this folder.** Disable the Trakt and Kodi interface
   addons in that profile (they would act on real accounts and hosts — INVENTORY §8).
 - Scrapes at L3 use live sites. So a result that differs between runs may be the site
