@@ -3,6 +3,10 @@
 Guidance for AI coding agents (Claude Code and others) working in this repository.
 Read this before touching any code. See also [SECURITY.md](SECURITY.md).
 
+**Start every session by reading [docs/WORKLOG.md](docs/WORKLOG.md)**: current status,
+open items, in-progress investigations (e.g. TVDB API) and session history. Before
+ending a session, update it (status, open items, a dated history entry).
+
 ## What this is
 
 **Ember Media Manager (EMM)** — a Windows desktop media manager for movies, movie sets
@@ -88,6 +92,7 @@ External/TheTVDBApi/        Vendored C# TVDB client (see UPSTREAM.md in that fol
 KodiAPI/                    C# Kodi JSON-RPC client library
 Trakttv/                    C# Trakt.tv API client library
 BuildSetup/                 Installer scripts and Transifex download tooling
+docs/WORKLOG.md             Agent worklog: status, open items, investigations, history
 ImageSources/, SourceImages/  Design source art (not compiled)
 Changelog.txt               Historic changelog (top entry is 1.4.7.2 / 2015 — stale)
 ```
