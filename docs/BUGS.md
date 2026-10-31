@@ -1,7 +1,8 @@
 # Bug log
 
-Bugs ("niggles") found by the owner in the current executable, recorded as reported.
-Each entry: symptom, steps, status, and findings once investigated. Session-level
+Bugs ("niggles") found by the owner in the current executable, plus bugs found
+incidentally while working on something else (marked **Found by:** code reading / build /
+log). Each entry: symptom, steps, status, and findings once investigated. Session-level
 progress goes in [WORKLOG.md](WORKLOG.md).
 
 Status values: `open` (reported, not investigated), `investigating`, `fixed` (with
@@ -179,3 +180,101 @@ Movies whose NFO lacks `<set>`, or has a slightly different name, end up outside
 **Code to look at once narrowed down.** NFO writing in `EmberAPI/clsAPINFO.vb` (set
 section). The TMDB data scraper's collection handling and the "automatically add movies to
 sets" settings. The movie-set DB linking in `EmberAPI/clsAPIDatabase.vb`.
+
+---
+
+## BUG-005 — Old Tag Manager addon no longer compiles
+
+- **Reported:** 2026-10-31. **Found by:** first command-line build
+- **Status:** open (blocks a clean solution build)
+- **Content type:** Movie / TV show tags
+
+**Symptom.** `Addons/generic.EmberCore.TagManager` fails to build:
+`'Save_Tag_Movie' is not a member of 'Database'` and `'Delete_Tag' …`
+(`dlgTagManager.vb:498, 501, 504`).
+
+**Findings.** Upstream commit `d08f4dae` (2022-11-27, "added: new Tag Manager") removed
+those DB methods and built a replacement Tag Manager into the app itself:
+`EmberMediaManager/dlgTagManager.vb`, wired to **Tools → Tag Manager**
+(`frmMain.vb` ~16249). The old addon was left in the solution, broken. The owner's
+installed 1.11.1 has a working Tag Manager, but it isn't known which of the two it is.
+
+- The old addon also registers a `CommandLine` hook (`Module.Tag.vb:61`). The in-app one
+  has no command-line equivalent.
+- Owner wants a working Tag Manager. Options: drop the old addon from the solution
+  (keep the files) and rely on the in-app one, fixing BUG-006 first; or port the addon
+  to the current tag API.
+
+---
+
+## BUG-006 — In-app Tag Manager: removing a tag from a movie/show is undone
+
+- **Reported:** 2026-10-31. **Found by:** code reading. **Not reproduced yet.**
+- **Status:** open
+- **Content type:** Movie / TV show tags
+
+**Suspected symptom.** In Tools → Tag Manager, untagging an item (moving it out of
+"Tagged") and clicking OK leaves the tag on the item.
+
+**Findings.** `EmberMediaManager/dlgTagManager.vb` `Process_Tags`, step 3 (unchanged,
+not-deleted tags). Row states are `Unchanged` / `ToRemove` / `New`.
+- Line ~382 removes the tag from rows in state `ToRemove`.
+- Line ~384 then selects rows where state is **not** `Unchanged`. That includes
+  `ToRemove` as well as `New`, and line ~385 adds the tag to all of them. So a removed
+  tag is added straight back. The intended filter is presumably `= "New"`. Same pattern
+  for TV shows at ~387-391.
+- Step 2 (renamed tag, ~364-375) renames the tag on every row regardless of state, so a
+  row marked `ToRemove` gets the new name instead of losing the tag.
+
+**To confirm.** A unit test is hard (dialog). L3: tag two movies in the test library,
+open Tag Manager, untag one, OK, then check the DB/NFO `<tag>` of both.
+
+---
+
+## BUG-007 — Saving writes NFO/images to disk before the DB commit, with no rollback
+
+- **Reported:** 2026-10-31. **Found by:** code reading (INVENTORY verification)
+- **Status:** open (latent; no reported symptom)
+- **Content type:** all
+
+**Findings.** `Database.Save_Movie` (`EmberAPI/clsAPIDatabase.vb` ~3264):
+- It writes the `.nfo`, images, theme and trailer to disk *before* writing the DB row.
+  It does this inside the transaction, which is only opened when `Not batchMode`.
+- It has no `Rollback` path. If anything fails after the disk writes, the files on disk
+  and the DB disagree (e.g. a new NFO for a row that was never saved).
+- The other `Save_*` methods follow the same pattern; not yet checked one by one.
+
+Low priority unless a symptom shows up. Don't change the order as a side effect of other
+fixes: file paths written to the row come from the disk step.
+
+---
+
+## BUG-008 — Image/trailer picker dialogs are opened from a background thread
+
+- **Reported:** 2026-10-31. **Found by:** code reading (INVENTORY verification)
+- **Status:** open (latent; no reported symptom)
+- **Content type:** all (single scrape)
+
+**Findings.** On `SingleScrape`, `frmMain.Scraper_DoWork_*` (BackgroundWorker `DoWork`)
+creates and shows `dlgImgSelect` / the trailer picker directly. Example:
+`Scraper_DoWork_TVEpisode`, `frmMain.vb` ~15490; movies ~15284. WinForms UI should be
+created on the UI thread. Doing it from a worker can cause dialogs behind the main
+window, focus problems, or rare hangs/cross-thread exceptions. It may be related if the
+owner ever sees a picker that "doesn't appear" or freezes.
+
+---
+
+## BUG-009 — Upstream HEAD did not compile
+
+- **Reported:** 2026-10-31. **Found by:** first command-line build
+- **Status:** **fixed** in `3da4d639` (plus `9297ff1b` for the build environment)
+
+**Findings.** Upstream's last commits (2242d240, c7235061; Nov/Dec 2022) were an unfinished
+cleanup. They removed `Imports System.Windows.Forms` and `Enums.ScraperEventType` from
+`clsAPICommon.vb`, half-renamed `TableItem`, and renamed `APIXML.CacheXMLs` to
+`CacheAllXml` without updating the caller. The fix restored those pieces with no
+behaviour change.
+
+**Implication.** The owner's installed 1.11.1 exe was built from an earlier commit. Its
+behaviour can differ from this code in places. When a bug doesn't reproduce in the dev
+build, check whether that code changed after the owner's build.

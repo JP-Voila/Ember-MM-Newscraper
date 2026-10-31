@@ -230,6 +230,10 @@ means "* All Seasons". Season `0` (specials) is a real value. Always test the ex
 `file:line` references in BUGS.md and WORKLOG.md were correct when written and drift as
 code changes. Re-check them before relying on them.
 
+**Bugs found incidentally** (while working on something else) are logged in BUGS.md as
+a new `BUG-NNN` with what was seen and where. Fix them later, as their own change, not
+inside the current one. The source of the bug can be the owner, a log, or code reading.
+
 Many "bugs" in a 2022-era scraper app are really **upstream API changes** (sites changed
 HTML, APIs deprecated/versioned, endpoints moved, keys revoked). Check that first for any
 scraper failure — e.g. HTML-scraping addons (IMDB, OFDB, Moviepilot, Videobuster,

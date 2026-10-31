@@ -32,8 +32,8 @@ CLAUDE.md.
 - [ ] Owner's bug list — being recorded in [BUGS.md](BUGS.md) as reported.
 - [ ] Set up testing per TEST_STANDARD: L1 command-line build (needs the 4.8 targeting
       pack), L2 new MSTest project in the solution, L3 test library + generator script.
-- [ ] `generic.EmberCore.TagManager` addon doesn't compile (superseded upstream by the
-      in-app Tag Manager). Owner to decide: drop it from the solution, or port it.
+- [ ] Tag Manager must work (owner, 2026-10-31). BUG-005 (old addon doesn't compile) +
+      BUG-006 (in-app one likely re-adds removed tags). Owner to pick the approach.
 - [ ] NuGet advisory: Newtonsoft.Json 12.0.3 in the two Trakt projects (NU1903). Decide
       whether to align them on 13.0.1 as a separate change.
 - [x] Exact build command recorded in CLAUDE.md (2026-10-31).
