@@ -1,0 +1,19 @@
+# Matches the existing conventions of the codebase so edits don't churn files.
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+
+[*.{vb,cs}]
+charset = utf-8-bom
+
+[*.{vbproj,csproj,config,xml,resx,settings,myapp}]
+indent_size = 2
+
+[*.sln]
+indent_style = tab
+
+[*.md]
+charset = utf-8
+insert_final_newline = true
