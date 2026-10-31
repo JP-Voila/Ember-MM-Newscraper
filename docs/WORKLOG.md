@@ -17,21 +17,28 @@ CLAUDE.md.
 - Done: agent context files, vendored TheTVDBApi into `External/`.
 - **In progress:** owner is testing whether TheTVDB's legacy XML API still works
   (see "TVDB investigation" below).
-- **Next:** owner will supply a list of bugs ("niggles") in the current executable.
-- Development is moving to a **local Windows** Claude Code session (cloud sessions can't
-  build — see "Development environment").
+- Bugs are being logged in [BUGS.md](BUGS.md): BUG-001 (single-episode scrape of an
+  unscraped show) has its root cause found, fix option not chosen yet. BUG-002 (regex
+  filter), BUG-003 (trailers) and BUG-004 (Kodi sets) are open.
+- Development is now in a **local Windows** Claude Code session (`D:\Ember-MM-Newscraper`).
+  The TheTVDBApi repointing is still not build-verified.
 
 ## Open items
 
 - [ ] TVDB legacy API test result → decide whether to migrate `External/TheTVDBApi` to
       TheTVDB API v4.
-- [ ] Owner's bug list — not yet provided.
+- [ ] Owner's bug list — being recorded in [BUGS.md](BUGS.md) as reported.
+- [ ] Set up testing per TEST_STANDARD: L1 command-line build (needs the 4.8 targeting
+      pack), L2 new MSTest project in the solution, L3 test library + generator script.
 - [ ] Record the exact working build command for the owner's machine in CLAUDE.md
       (Visual Studio version, MSBuild path/command, configuration used).
 - [ ] Version numbers disagree: assemblies say `1.11.1.0`
       (`EmberMediaManager/My Project/AssemblyInfo.vb`), installer scripts say `1.12.0`
       (`BuildSetup/0_BuildSetup_x64.bat`), `Changelog.txt` stops at `1.4.7.2` (2015).
       Decide on a version scheme before shipping a build. Low priority.
+- [ ] Dead projects on disk, not in the solution: `Addons/scraper.EmberCore.XML`,
+      `Addons/scraper.TVDB.Poster`, `Trakttv/` (see INVENTORY §2). Decide whether to
+      delete. Low priority.
 - [ ] `EmberAPI_Test` is not in the solution and is stale. Decide whether to revive it.
       Low priority.
 
@@ -115,6 +122,38 @@ file only holds the last download.
 ---
 
 ## Session history
+
+### 2026-10-31 — local session: bug log + agent rules
+
+- Created `docs/BUGS.md` and logged BUG-001…004. BUG-001's root cause (episode scrapers
+  need show IDs; nothing searches for the show first) was found from an owner log.
+- `docs/tmp/` added to `.gitignore` as scratch for owner logs and imported files.
+- Merged the rules that apply here from another project's CLAUDE.md/SECURITY.md (kept in
+  `docs/tmp/`, not committed):
+  - CLAUDE.md: working principles, change checklists, bug workflow.
+  - SECURITY.md: zip extraction, XML DTD rule, pre-merge checklist.
+- Wrote `docs/INVENTORY.md`: projects (incl. 4 dead ones on disk), addon→interface map,
+  EmberAPI/app responsibilities, startup/scan/scrape/save flows, persisted state, and
+  change seams ranked by blast radius and reversibility.
+- Wrote `docs/TEST_STANDARD.md`, adapted from the owner's other project:
+  - four test layers;
+  - fixture, global-state and culture rules;
+  - the bite protocol and vacuity modes;
+  - the bug lane (red test committed first);
+  - the git-tracked test library.
+
+  Dropped: frontend/React, money arithmetic, clock-drift, fences, review-round
+  calibration, the execution ledger.
+- Build environment: VS Build Tools 2026 (MSBuild 18, vbc, vstest.console) present;
+  .NET Framework 4.8 targeting pack was missing; the owner installed it (`v4.8` reference
+  assemblies now present). No build attempted yet. TVDB and
+  KodiAPI target 4.5, which current VS no longer ships; plan is to retarget those two to
+  4.8 in their own commit.
+- `clsAPIHTTP.vb` logs full request URLs on error. The owner ruled API-key leakage a
+  non-issue (the built-in keys are already public), so it is not tracked. Only
+  end-user-supplied credentials (Kodi password, Trakt token, personal API keys entered
+  in Settings) must stay out of logs. Anything already public in the source is out of
+  scope.
 
 ### 2026-10-31 — cloud session: onboarding + TVDB dependency
 

@@ -55,13 +55,48 @@ These are inherited from upstream and are documented here so they are not made w
 5. **Dependencies are dated** (packages last updated ~2022). Check advisories before
    relying on any package for parsing untrusted input.
 
+6. **Archive extraction.** `External/TheTVDBApi` extracts each downloaded series zip
+   using `entry.Name` (file name only), so a crafted entry path cannot escape the
+   extraction folder (no zip-slip). There is no size cap on the download or the
+   extracted files.
+
 ## Guidance for contributors and AI agents
 
+Two requirements are independent and both mandatory: the change **works** and it is
+**safe**. A fix that scrapes correctly but writes outside the media folder has failed.
+
 - Never commit secrets, tokens, personal `Settings.xml`, databases (`*.emm`), logs, or
-  paths that reveal personal media libraries.
-- Never print or log API keys, tokens or passwords (including in NLog output).
+  paths that reveal personal media libraries. Owner logs belong in the git-ignored
+  `docs/tmp/`. Don't copy media paths from them into committed docs beyond what
+  identifies the bug.
+- Never print or log credentials the **end user supplies** in Settings, including in NLog
+  output. That means their Kodi host password, their Trakt token, and a personal API key
+  they entered. Anything already visible in the source or git history (the built-in
+  scraper keys in item 1, the Trakt client key) is out of scope. Request URLs containing
+  those keys may be logged as they are today (e.g. `EmberAPI/clsAPIHTTP.vb` error lines).
+- Scraped text is not safe log input either. Log IDs, counts and statuses rather than
+  whole response bodies.
 - Use parameterised SQL. Sanitise any scraped string before using it in a file path.
 - Treat everything returned by a scraper as untrusted input.
 - Don't widen the plug-in loading mechanism (e.g. loading DLLs from new locations or URLs).
 - Flag, rather than silently fix, any security issue found while working on something
   else, so it can be handled as its own change.
+- When parsing XML from a scraper or an NFO with `XmlReader`, keep DTD processing off
+  (`DtdProcessing.Prohibit`, `XmlResolver = Nothing`). Never turn it on to "fix" a
+  parse error.
+- A package upgrade on an untrusted-input path (XML/HTML parsing, YouTube extraction,
+  archive handling) is a deliberate, reviewed change, never a side effect.
+
+## Pre-merge checklist
+
+For the diff, confirm:
+
+- [ ] No keys, tokens, `Settings.xml`, `*.emm`, logs or personal media paths added.
+- [ ] No new log line writes an end-user-supplied credential (password, token, personal
+      API key).
+- [ ] SQL uses `SQLiteCommand` parameters; no values concatenated into SQL text.
+- [ ] Any file name built from scraped text is sanitised before it is used in a path.
+- [ ] Changes to NFO, image or file-naming output (files on the owner's disk) are called
+      out in the summary.
+- [ ] Builds on Windows (`Debug|x64`) with `Option Strict On`, or the summary says it
+      was not built.

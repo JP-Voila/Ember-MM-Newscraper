@@ -60,6 +60,9 @@ SQLite interop DLLs in `EmberAPI/x86` and `EmberAPI/x64`).
 - `EmberAPI_Test` is an MSTest project that is **not included in the solution** and is
   largely stale (references NLog 3.1 / `UnitTestFramework` 10.x). Don't rely on it; if you
   add tests, say so and note they have not been run.
+- **Testing rules live in [docs/TEST_STANDARD.md](docs/TEST_STANDARD.md):** the four
+  layers (build / unit / test library / manual), fixtures, bites, and the bug lane
+  (failing test committed before the fix).
 
 ## Repository layout
 
@@ -93,6 +96,10 @@ KodiAPI/                    C# Kodi JSON-RPC client library
 Trakttv/                    C# Trakt.tv API client library
 BuildSetup/                 Installer scripts and Transifex download tooling
 docs/WORKLOG.md             Agent worklog: status, open items, investigations, history
+docs/BUGS.md                Owner-reported bugs (BUG-NNN): symptom, findings, status
+docs/INVENTORY.md           What every project/file does, key flows, state, change seams
+docs/TEST_STANDARD.md       What a test must be; test layers; bug lane
+docs/tmp/                   Git-ignored scratch: owner logs, test output
 ImageSources/, SourceImages/  Design source art (not compiled)
 Changelog.txt               Historic changelog (top entry is 1.4.7.2 / 2015 — stale)
 ```
@@ -148,16 +155,70 @@ Match the surrounding code. In particular:
 - Commit message style used in history: lower-case prefix, e.g.
   `fixed: <what>`, `added: <what>`, `changed: <what>`, `code: cleanup`.
 
+## Working principles
+
+- **Root cause, not workaround.** Diagnose the root cause. No patches or workarounds
+  unless explicitly requested.
+- **Simplicity.** Use the cheapest mechanism that closes the defect; deletion is preferred.
+  "Smaller" means fewer *mechanisms*, never fewer lines.
+- **Checks must be able to fail.** A zero, empty or absent result counts only next to a
+  positive control that proves the check can fire. Examples in this codebase:
+  - "No `ERROR` in the log" proves nothing if the code path logs `[Done]` whether or not
+    it worked (`TVDB_Data.Scraper_TVEpisode`).
+  - A grep with no hits proves nothing if the pattern would not have matched the real
+    spelling.
+
+  Confirm the check finds a known positive first.
+- **Enumerate first.** Fix a class of bug from a mechanically listed set of instances,
+  never one instance at a time from where it was first seen. Ember's architecture
+  repeats itself: every `Scraper_TVEpisode`, every trailer scraper, every `dlgEdit_*`.
+  When one implementation is wrong, grep for all its siblings before deciding the scope
+  of the fix.
+- **Works and safe are separate requirements.** Both are mandatory. See SECURITY.md.
+- **Comment the why, not the what.** No new `TODO` without a `BUG-NNN` reference.
+
+## Change checklists
+
+**Adding a property to a data class** (`MediaContainers.*`, `Database.DBElement`). A
+missed step means the value is silently lost, not an error:
+1. **Cloning.** `CloneDeep` uses `BinaryFormatter` (`clsAPIDatabase.vb`,
+   `clsAPIMediaContainers.vb`). The property's type must be `<Serializable()>`.
+2. **NFO.** Decide `<XmlElement(...)>` vs `<XmlIgnore()>`. Add a `…Specified`
+   property if the element should be omitted when empty.
+3. **Database.** Add the property to the load *and* save paths in `clsAPIDatabase.vb`.
+   A new column is a schema change: see "Architecture essentials".
+4. **Merge.** Scraper results reach the DB through `NFO.MergeDataScraperResults_*`
+   (`clsAPINFO.vb`). A field not merged there never leaves the scraper.
+
+**"Unset" values are sentinels, not zero.** Numbers use `-1` for "not set"
+(`EpisodeDetails.Season`/`.Episode`). `SeasonDetails.Season` uses `-2`, because `-1`
+means "* All Seasons". Season `0` (specials) is a real value. Always test the existing
+`…Specified` property; never compare against `0`, `-1` or `> 0` yourself.
+
 ## Workflow for bug fixes
 
 1. Get a precise symptom from the owner (steps, content type, which scraper, log excerpt
    from `<install dir>\Log\<yyyy-MM-dd>.csv` — NLog config in `EmberAPI/NLog.config`).
-2. Locate the code path — grep for the localized message text or the UI control name;
+   Record it in [docs/BUGS.md](docs/BUGS.md) as the next `BUG-NNN`.
+2. Logs and other owner-supplied scratch files go in `docs/tmp/`. It is git-ignored,
+   because logs contain personal media paths. Logs are large: grep for the relevant
+   lines (`[TVEpisodeScraper]`, `[<Scraper>_Data]`, `ERROR`) instead of reading the
+   whole file.
+3. Locate the code path — grep for the localized message text or the UI control name;
    `frmMain.vb` and `clsAPIDatabase.vb` are huge, so search rather than read top-down.
-3. Explain the root cause before changing code.
-4. Make the smallest fix that addresses it. Check all call sites of anything you touch.
-5. Summarise: root cause, the change, risk, and a manual test plan for Windows.
-6. Optionally add an entry to `Changelog.txt` if the owner wants one.
+4. Explain the root cause before changing code. Write the findings (with `file:line`)
+   into the bug's entry in BUGS.md. Then reproduce it as a failing test and commit that
+   first (TEST_STANDARD §7).
+5. Make the smallest fix that addresses it. Check all call sites of anything you touch,
+   and all sibling implementations (see "Enumerate first"). Pick the most isolated seam
+   that closes the defect ([docs/INVENTORY.md](docs/INVENTORY.md) §8). Make one commit
+   per bug with `BUG-NNN` in the message, so each fix can be reverted on its own.
+6. Summarise: root cause, the change, risk, and a manual test plan for Windows. Update
+   the bug's status in BUGS.md.
+7. Optionally add an entry to `Changelog.txt` if the owner wants one.
+
+`file:line` references in BUGS.md and WORKLOG.md were correct when written and drift as
+code changes. Re-check them before relying on them.
 
 Many "bugs" in a 2022-era scraper app are really **upstream API changes** (sites changed
 HTML, APIs deprecated/versioned, endpoints moved, keys revoked). Check that first for any
@@ -169,6 +230,10 @@ Apple trailers, Dave's trailer page, TelevisionTunes) are the most likely to be 
 - Don't commit secrets, API keys, personal media paths, `Settings.xml`, databases
   (`*.emm`) or log files. See SECURITY.md about the API keys already in the source.
 - Don't upgrade NuGet packages or retarget frameworks as a side effect of a bug fix.
+  When the owner approves an upgrade (e.g. a parser or download library), make it a
+  separate change and record the old/new version and the reason in WORKLOG.md.
+- Don't let one scraper's failure crash the app or stop the other scrapers. Each
+  scraper catches and logs its own errors, then returns an empty result.
 - Don't add new project references to paths outside the repo. Third-party source goes
   under `External/<name>/` with an `UPSTREAM.md` recording source, commit and licence.
 - Don't change `MyVideosDBVersion` or delete DB patch files without an explicit request.
