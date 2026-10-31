@@ -296,7 +296,8 @@ From most isolated to least:
    - **online accounts**: if the dev profile is a *copy* of the real one, it carries
      the Trakt account (`Interface.Trakt.xml`) and Kodi hosts (`Interface.Kodi.xml`).
      Trakt/Kodi hooks would then act on the real services. Disable those addons in the
-     dev profile.
+     dev profile. (A *fresh* profile already has them off: only `generic.EmberCore.*`
+     modules default to on, and the Trakt scraper defaults to off.)
 4. Before testing a build against the real library: copy the profile folder
    (`Profiles\<name>\`) — that is the DB plus all settings in one place.
 5. Disable instead of delete: a broken scraper is switched off in Settings; the code stays

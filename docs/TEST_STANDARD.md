@@ -219,8 +219,11 @@ A disposable media folder for anything that writes to disk:
 - **No NFOs are generated.** "Existing library" cases need captured NFOs (§3). Once Ember
   has scraped the test library, copy chosen NFOs into the script's fixtures, recording
   source and date.
-- **The dev profile points only at this folder.** Disable the Trakt and Kodi interface
-  addons in that profile (they would act on real accounts and hosts — INVENTORY §8).
+- **The dev profile points only at this folder.** On a *fresh* profile, the Trakt and
+  Kodi interface modules and the Trakt scraper are already disabled. Only
+  `generic.EmberCore.*` modules default to on (confirmed by the owner, 2026-11-01). If
+  the dev profile is ever a *copy* of a real profile, check they are off: they would act
+  on real accounts and hosts (INVENTORY §8).
 - Scrapes at L3 use live sites. So a result that differs between runs may be the site
   changing, not Ember. Note the date of the run.
 

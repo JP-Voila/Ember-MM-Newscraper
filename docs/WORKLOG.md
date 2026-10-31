@@ -26,8 +26,8 @@ CLAUDE.md.
   removed from the solution (BUG-005). The dev build has **not been launched** yet.
 - **Test library ready:** `tools/New-TestLibrary.ps1` → `testlib/` (git-ignored, own
   nested repo). **Next:** owner's first launch of the dev build with a fresh profile
-  pointed at `testlib\Movies` and `testlib\TV Shows`. Disable the Trakt/Kodi addons,
-  the metadata scan and frame extraction. Then L2 test project.
+  pointed at `testlib\Movies` and `testlib\TV Shows`. Turn off the metadata scan and frame
+  extraction. Trakt/Kodi are already off on a fresh profile. Then L2 test project.
 
 ## Open items
 
