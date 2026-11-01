@@ -534,3 +534,32 @@ the pattern works).
 **Side note.** Rescraping a *season* (Season 0) with TVDB does nothing by design:
 `TVDB_Data.Scraper_TVSeason` is a stub (WORKLOG "How to read the logs"). To refresh
 specials, scrape the Season 0 *episodes*.
+
+---
+
+## BUG-016 — "Part 1" / "Part 2" (space before the number) is not stacked as one movie
+
+- **Reported:** 2026-11-01 (owner: a movie split as part 1/part 2 isn't linked; cd1/cd2 works)
+- **Status:** investigating (root cause found, not fixed)
+- **Content type:** movie (multi-file)
+
+**Root cause.** The default `FileStacking` pattern
+(`EmberAPI/clsAPIFileUtils.vb:810`, overridable via AdvancedSettings `FileStacking`):
+`(.*?)([ _.-]*(?:cd|dvd|p(?:ar)?t|dis[ck])[0-9]+)(.*?)(\.[^.]+)$` requires the digit to
+follow the keyword immediately. Tested with .NET `Regex` + `IgnoreCase`, as Ember calls it:
+
+| Name | Result |
+|---|---|
+| `Movie cd1.mkv` (control), `Movie part1.mkv`, `Movie - Part1.mkv`, `Movie pt1.mkv` | stacked |
+| `Movie Part 1.mkv`, `Movie - Part 1.mkv`, `Movie.Part.1.mkv`, `Movie (Part 1).mkv` | not stacked |
+
+Kodi's default `moviestacking` allows separators before the number
+(`…(?:cd|dvd|p(?:ar)?t|dis[ck])[ _.-]*[0-9]+…`, from memory: **verify against Kodi's
+`AdvancedSettings.cpp` before changing**). So Kodi may stack files that Ember lists as
+two movies with two NFOs.
+
+**Workaround.** Rename to `part1`/`part2` (or `cd1`/`cd2`).
+
+**Fix option.** Add `[ _.-]*` before `[0-9]+` in the default `FileStacking` pattern. Check
+`FolderStacking` (line 811) the same way. The change affects how existing libraries are
+scanned: previously separate entries become one stacked movie.
