@@ -25,9 +25,10 @@ CLAUDE.md.
   (Debug|x64 clean rebuild, 0 errors, 2026-11-01), after the old TagManager addon was
   removed from the solution (BUG-005). The dev build has **not been launched** yet.
 - **Test library ready:** `tools/New-TestLibrary.ps1` → `testlib/` (git-ignored, own
-  nested repo). **Next:** owner's first launch of the dev build with a fresh profile
-  pointed at `testlib\Movies` and `testlib\TV Shows`. Turn off the metadata scan and frame
-  extraction. Trakt/Kodi are already off on a fresh profile. Then L2 test project.
+  nested repo). Dev build launched (after the BUG-010 fix), sources added, Update Library
+  ran. **Next:** untick "Scan Meta Data" (Movies and TV Shows → Scrapers - Data), then TV
+  scraper isolation run 1 (TVDB only). Frame extraction and Trakt/Kodi are already off on
+  a fresh profile. Then L2 test project.
 
 ## Open items
 

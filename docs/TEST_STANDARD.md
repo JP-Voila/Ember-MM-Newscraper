@@ -214,8 +214,11 @@ A disposable media folder for anything that writes to disk:
   - date-based episodes.
 
   The list is in the script.
-- **Dummy files have no streams.** MediaInfo/FFmpeg results are meaningless. Turn off the
-  metadata scan and frame extraction in the test profile.
+- **Dummy files have no streams.** MediaInfo/FFmpeg results are meaningless. In the test
+  profile, untick **Scan Meta Data**. It appears twice: Settings → Movies → Scrapers -
+  Data → Meta Data, and Settings → TV Shows → Scrapers - Data → Meta Data. It is on by
+  default. Automatic frame extraction (`MovieExtrathumbsCreatorAutoThumbs`) is already
+  off by default.
 - **No NFOs are generated.** "Existing library" cases need captured NFOs (§3). Once Ember
   has scraped the test library, copy chosen NFOs into the script's fixtures, recording
   source and date.
