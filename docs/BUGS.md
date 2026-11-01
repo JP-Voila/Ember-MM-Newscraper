@@ -445,3 +445,33 @@ TVDB ID and fetches the wrong series, or nothing. Also, TMDB has this title only
 **movies** (Vol. 1–6, e.g. id 465022). A TMDB TV search for it returns nothing (control:
 the same movie search returns all six). So it can't be scraped as a TV show from TMDB at
 all. Not an Ember defect. Remaining defect: the OK button after a failed Verify (above).
+
+---
+
+## BUG-014 — A show that exists only on TVDB can't be identified when TMDB runs first
+
+- **Reported:** 2026-11-01 (owner, live install: *Looney Tunes*, TVDB 72514)
+- **Status:** investigating (root cause found, not fixed)
+- **Content type:** TV show
+- **Scrapers enabled:** TMDB + TVDB (TV data), TMDB first
+
+**Symptom.** Scraping the show opens the **TMDB** search dialog. TMDB has no entry for
+it, and its manual box takes a TMDB ID, so the TVDB ID `72514` finds an unrelated TMDB
+show (*Elegant Yokai Apartment Life*). The TVDB dialog is never reached.
+
+**Root cause.** The TMDB dialog's only way out without a match is Cancel. Cancel returns
+`Cancelled = True` (`Addons/scraper.TMDB.Data/TMDB_Data.vb:814`), and
+`ModulesManager.ScrapeData_TVShow` stops the whole scraper chain on it
+(`EmberAPI/clsAPIModules.vb:1260`, `If ret.Cancelled Then Return`). So "not on TMDB"
+and "user cancelled the scrape" are the same signal, and TVDB never runs. The TVDB name
+search is also dead (BUG-012), so TVDB can't find the show itself either.
+
+**Workaround.** Once the show has a TVDB ID, TMDB tries a TVDB→TMDB lookup, gets
+nothing, and returns an empty result without cancelling (`TMDB_Data.vb:773-775`), so
+TVDB then scrapes by ID. So only the first identification needs a workaround:
+temporarily disable TMDB as a TV data scraper, scrape, use Manual TVDB Entry, then
+re-enable TMDB.
+
+**Fix options (not decided).** Give the TMDB TV dialog a "skip this scraper" exit that
+returns no result without `Cancelled`. Check the movie/movie-set dialogs and other
+data scrapers for the same pattern (enumerate first).
