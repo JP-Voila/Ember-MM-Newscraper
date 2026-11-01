@@ -563,3 +563,56 @@ two movies with two NFOs.
 **Fix option.** Add `[ _.-]*` before `[0-9]+` in the default `FileStacking` pattern. Check
 `FolderStacking` (line 811) the same way. The change affects how existing libraries are
 scanned: previously separate entries become one stacked movie.
+
+---
+
+## BUG-017 — Dev build: every successful movie/set/episode/show data scrape is treated as cancelled
+
+- **Reported:** 2026-11-01. **Found by:** L3 TV test run 2 (TMDB only, dev build)
+- **Status:** investigating (root cause found, not fixed)
+- **Content type:** movie, movie set, TV show, TV episode
+- **Affects:** current code only (upstream HEAD). The owner's installed 1.11.1 was built
+  before the change (BUG-009), which is why scraping works there.
+
+**Symptom.** *Breaking Bad*: TMDB search found the show, the owner picked it and pressed
+OK, the "Scraping Data" bar showed, but the show was never updated. Log: `[TMDB_Data]
+[Scraper_TV] [Done]` → `[ScrapeData_TVShow] [Done] Breaking Bad` → frmMain
+`Canceled scraping: Breaking Bad`. No image scrapers ran, nothing was saved. `testlib`
+was unchanged.
+
+**Root cause.** Every `ModulesManager.ScrapeData_*` returns **True when cancelled** or
+when there are no results, and False on success. The doc comment says "True if one of
+the scrapers was cancelled", and all five functions follow it
+(`EmberAPI/clsAPIModules.vb` 915/1016/1085/1154/1215: `Return ret.Cancelled`,
+`Return True 'Cancelled'`). Upstream **d08f4dae** (2022-11-27, "added: new Tag
+Manager, also ...") inverted the test at 9 call sites in `frmMain.vb` without changing
+the callees:
+
+| Line | Content | Now | Effect |
+|---|---|---|---|
+| 15156, 15181 | movie | `If Not …` → Cancelled | success = cancel |
+| 15334, 15353 | movie set | `If Not …` → Cancelled / Exit For | success = cancel |
+| 15441, 15463 | episode | `If Not …` → Cancelled / Exit For | success = cancel |
+| 15640, 15662 | TV show | `If Not …` → Cancelled / Exit For | success = cancel |
+| 2611 | Change Show | `If …` → open Change Episode dialog | only opens on cancel/no result |
+
+The other 7 call sites follow the contract and are untouched by d08f4dae:
+dlgOfflineHolder 541/1475/1602, `clsAPIScanner.vb` 809/1031, `clsAPITaskManager.vb` 502,
+frmMain season 15543/15558. Enumerated with a case-insensitive grep, because VB names are
+case-insensitive and the code spells it `ScrapeData_Movieset`. A case-sensitive grep
+missed 2 sites.
+
+**It explains every dev-build TV run so far:**
+- Run 1 show: TVDB Cancel returned True. `Not True` meant not cancelled, so the image
+  scrapers ran after the cancel (they did, in the log).
+- Run 1 episode: TVDB returned an empty container (BUG-001 note 3), which counts as a
+  "result", so the call returned False and was logged "Canceled scraping".
+- Run 2 episode: TMDB aborted (no show ID), so the call returned True and the flow
+  carried on into the Edit Episode dialog with nothing scraped.
+- Run 2 show: success counted as cancelled (above).
+
+**Consequence for testing.** Dev-build scrape results are not valid until this is fixed.
+BUG-001 must be re-checked on the fixed build.
+
+**Fix.** Restore the 9 call sites to their pre-d08f4dae form (a revert of those lines
+only; the rest of d08f4dae, the in-app Tag Manager, stays). The callees are not changed.
