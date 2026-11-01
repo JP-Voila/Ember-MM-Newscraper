@@ -224,6 +224,16 @@ A disposable media folder for anything that writes to disk:
   `generic.EmberCore.*` modules default to on (confirmed by the owner, 2026-11-01). If
   the dev profile is ever a *copy* of a real profile, check they are off: they would act
   on real accounts and hosts (INVENTORY §8).
+- **Scraper isolation (owner decision, 2026-11-01).** The test profile does not copy the
+  owner's live settings. Test scrapers one at a time, then combined, so a failure points
+  at one scraper:
+  1. **TVDB only** (the dev default for TV data);
+  2. **TMDB only**;
+  3. **TVDB + TMDB**, which is the live setup. Per the owner it covers ~99% of top-level
+     scraping cases, so this is the acceptance run.
+
+  Record which combination a result came from (BUGS.md / commit message). The same
+  pattern applies to other scraper groups (images, trailers) when they're tested.
 - Scrapes at L3 use live sites. So a result that differs between runs may be the site
   changing, not Ember. Note the date of the run.
 

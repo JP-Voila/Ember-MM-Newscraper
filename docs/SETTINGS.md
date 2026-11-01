@@ -109,8 +109,10 @@ are off. Movie sets: no naming scheme is on (§2). All NFO/image file names come
 |---|---|---|---|
 | TMDB as a **TV** data scraper | Off | **On** (runs before TVDB) | Owner log 2026-10-31: `[ScrapeData_TVEpisode] [Using] TMDB_Data`, then `TVDB_Data` |
 
-To reproduce owner bugs on TV data (e.g. BUG-001), enable TMDB for TV in the test profile.
-The installed 1.11.1 was built from an earlier commit (BUG-009), so other defaults may
+The test profile does **not** mirror the live install. TV scraping is tested per
+scraper instead (TEST_STANDARD §8, "Scraper isolation"): TVDB only, then TMDB only, then
+both. Owner baseline: on the live build, TVDB + TMDB together cover ~99% of scraping
+cases at the top level. The installed 1.11.1 was built from an earlier commit (BUG-009), so other defaults may
 differ too. Running `tools/Export-DefaultSettings.ps1 -BuildDir <install dir>` against
 the installed `EmberAPI.dll` would list them.
 
