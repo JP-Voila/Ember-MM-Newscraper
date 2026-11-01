@@ -409,3 +409,30 @@ client only returns `Nothing` for empty arguments, so it is not reachable from t
    then by name.
 3. Full migration of `External/TheTVDBApi` to v4 (largest; the by-ID endpoints still
    work today but may be retired too).
+
+---
+
+## BUG-013 — TVDB search dialog: "Manual TVDB Entry" with a TVDB number doesn't work
+
+- **Reported:** 2026-11-01 (owner, from earlier use of the installed 1.11.1)
+- **Status:** open (not reproduced)
+- **Content type:** TV show
+- **Scrapers enabled:** TMDB + TVDB (owner's install)
+
+**Symptom.** In the TVDB search dialog, ticking "Manual TVDB Entry" and typing the show's
+TVDB number did not get the show scraped.
+
+**Findings so far (code reading, not reproduced).** The box is labelled correctly: it
+takes a TVDB ID, and also accepts an IMDB ID starting with `tt`
+(`Addons/scraper.Data.TVDB/Scraper/clsScrapeTVDB.vb:191-195`, `GetTVShowInfo`). A TVDB
+ID goes straight to the full-series zip, which still works (BUG-012 probe table). So the
+lookup itself should succeed today.
+
+One candidate: `dlgTVDBSearchResults.SearchInfoDownloaded`
+(`Addons/scraper.Data.TVDB/Scraper/dlgTVDBSearchResults.vb:244`) enables **OK** before
+checking whether Verify returned anything. After a failed Verify the "Verification
+Failed" box appears, but OK stays enabled. Pressing OK then returns an empty result, and
+`GetSearchTVShowInfo` (`clsScrapeTVDB.vb:107`) silently scrapes nothing.
+
+**To reproduce (dev build).** Scrape *Breaking Bad* → tick Manual TVDB Entry → `81189` →
+Verify (details should appear) → OK. Repeat with `tt0903747`.
