@@ -573,6 +573,15 @@ scanned: previously separate entries become one stacked movie.
   pre-d08f4dae form, each checked against `d08f4dae^`. Build green. Red evidence is the
   run-2 log above (L3). There is no L2 test: the logic sits in frmMain BackgroundWorker
   handlers, which unit tests can't reach.
+- **Part 2 (2026-11-01).** The repeated run 2 scraped data but showed no image picker and
+  saved no artwork. Cause: d08f4dae had also inverted **37** `ScrapeImage_*` /
+  `ScrapeTheme_*` / `ScrapeTrailer_Movie` call sites in frmMain. All six callees return
+  True on cancel (doc comment + `Return ret.Cancelled`), so images, themes and trailers
+  were only used after a cancel. Restored to `If Not …`. Every `Scrape*` call line in
+  frmMain now equals `d08f4dae^` (case-insensitive diff). A scan of d08f4dae for other
+  `If` ↔ `If Not` flips found none outside `Scrape*` calls; the scan's positive control
+  found the 16 distinct `Scrape*` flip lines. The `dlgEdit_*`, dlgOfflineHolder, Scanner
+  and dlgMediaFileSelect callers were not touched by d08f4dae and follow the contract.
 - **Content type:** movie, movie set, TV show, TV episode
 - **Affects:** current code only (upstream HEAD). The owner's installed 1.11.1 was built
   before the change (BUG-009), which is why scraping works there.
