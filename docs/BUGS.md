@@ -472,6 +472,17 @@ TVDB then scrapes by ID. So only the first identification needs a workaround:
 temporarily disable TMDB as a TV data scraper, scrape, use Manual TVDB Entry, then
 re-enable TMDB.
 
-**Fix options (not decided).** Give the TMDB TV dialog a "skip this scraper" exit that
-returns no result without `Cancelled`. Check the movie/movie-set dialogs and other
-data scrapers for the same pattern (enumerate first).
+Workaround verified by the owner on the live install, 2026-11-01.
+
+**Fix options (not decided).**
+1. Give the TMDB TV dialog a "skip this scraper" exit that returns no result without
+   `Cancelled`.
+2. (Owner's suggestion) Add an ID-type selector to the manual entry (TMDB / TVDB / IMDB).
+   Each dialog is in its own addon and can't call another scraper directly. But TMDB can
+   set the chosen ID on the show and step aside without cancelling. It tries the
+   TVDB→TMDB lookup first (`GetTMDBbyTVDB`), and if that finds nothing the chain
+   continues, so TVDB scrapes by that ID. This also fixes the confusing case where a TVDB
+   number typed into the TMDB box silently finds an unrelated show.
+
+Either way, check the movie/movie-set dialogs and the other data scrapers for the same
+pattern (enumerate first).
