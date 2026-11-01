@@ -41,7 +41,7 @@ CLAUDE.md.
     plots and all three IDs. Actor thumbs were saved.
   - This confirms that **TMDB supplies the TVDB ID**, which is why the live TMDB+TVDB
     setup works despite BUG-012.
-  - **No show artwork** (poster/fanart) was written, and that still needs explaining.
+  - No show artwork at first: BUG-017 part 2 (37 more inverted image/theme/trailer checks), fixed. After it: poster, fanart, banner, extrafanart, season art and episode thumbs are written with Frodo names.
   - BUG-018 was logged from the stale pre-fix Expanse NFO.
 - Live-install issues the owner reported on 2026-11-01 are logged as BUG-013 (TVDB manual
   entry: only the OK-after-failed-Verify defect remains), BUG-014 (TMDB Cancel blocks

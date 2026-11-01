@@ -569,7 +569,7 @@ scanned: previously separate entries become one stacked movie.
 ## BUG-017 — Dev build: every successful movie/set/episode/show data scrape is treated as cancelled
 
 - **Reported:** 2026-11-01. **Found by:** L3 TV test run 2 (TMDB only, dev build)
-- **Status:** fixed (pending owner retest of run 2). The 9 sites were restored to their
+- **Status:** fixed, verified by the owner on the dev build 2026-11-01 (data, images and save all work). The 9 sites were restored to their
   pre-d08f4dae form, each checked against `d08f4dae^`. Build green. Red evidence is the
   run-2 log above (L3). There is no L2 test: the logic sits in frmMain BackgroundWorker
   handlers, which unit tests can't reach.
