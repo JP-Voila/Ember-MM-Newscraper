@@ -412,10 +412,11 @@ client only returns `Nothing` for empty arguments, so it is not reachable from t
 
 ---
 
-## BUG-013 — TVDB search dialog: "Manual TVDB Entry" with a TVDB number doesn't work
+## BUG-013 — TVDB search dialog: OK stays enabled after a failed manual-ID Verify
 
 - **Reported:** 2026-11-01 (owner, from earlier use of the installed 1.11.1)
-- **Status:** open (not reproduced)
+- **Status:** open (low). Reported lookup failure is not a bug (see Retest); the OK-button
+  defect below remains
 - **Content type:** TV show
 - **Scrapers enabled:** TMDB + TVDB (owner's install)
 
@@ -436,3 +437,11 @@ Failed" box appears, but OK stays enabled. Pressing OK then returns an empty res
 
 **To reproduce (dev build).** Scrape *Breaking Bad* → tick Manual TVDB Entry → `81189` →
 Verify (details should appear) → OK. Repeat with `tt0903747`.
+
+**Retest (2026-11-01, dev build).** Manual entry works with both `81189` and
+`tt0903747`. The owner thinks the earlier failure was *Looney Tunes Golden Collection*,
+looked up with a **TMDB** ID. A TMDB ID is also a plain number, so the box treats it as a
+TVDB ID and fetches the wrong series, or nothing. Also, TMDB has this title only as six
+**movies** (Vol. 1–6, e.g. id 465022). A TMDB TV search for it returns nothing (control:
+the same movie search returns all six). So it can't be scraped as a TV show from TMDB at
+all. Not an Ember defect. Remaining defect: the OK button after a failed Verify (above).

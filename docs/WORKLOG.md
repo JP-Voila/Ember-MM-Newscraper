@@ -34,7 +34,9 @@ CLAUDE.md.
 ## Open items
 
 - [ ] TVDB legacy API: name search dead, by-ID calls work (BUG-012, 2026-11-01). Decide
-      fix: v4 search only, IMDB-id lookup first, or full v4 migration.
+      fix: v4 search only, IMDB-id lookup first, or full v4 migration. v4 needs a key
+      (free under $50k/yr revenue, attribution required). The owner is undecided about
+      signing up; option 2 (IMDB id first) needs no key.
 - [ ] Owner's bug list — being recorded in [BUGS.md](BUGS.md) as reported.
 - [ ] Set up testing per TEST_STANDARD: L1 command-line build (needs the 4.8 targeting
       pack), L2 new MSTest project in the solution, L3 test library + generator script.
