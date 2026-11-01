@@ -31,8 +31,18 @@ CLAUDE.md.
   upstream (BUG-012); by-ID calls still work. BUG-001 confirmed with TVDB alone (silent
   cancel). **Next:** run 2, TMDB only; then run 3, both. Then L2 test project.
 - **TV run 2 (TMDB only)** exposed BUG-017 (an upstream commit inverted the scrape-result
-  checks; every dev-build scrape outcome was wrong). Fixed. **Next:** repeat run 2 on the
-  fixed build, then run 3. Run 1 and BUG-001's dev-build notes predate the fix.
+  checks; every dev-build scrape outcome was wrong). Fixed. Run 1 and BUG-001's dev-build
+  notes predate the fix.
+- **Run 2 repeated on the fixed build (2026-11-01 22:45):**
+  - *The Expanse* S01E01 alone: TMDB aborts (no show TMDB ID), and Ember cancels with no
+    message (BUG-001, now the intended path).
+  - *Breaking Bad* whole show: data → images → save. `tvshow.nfo` has tvdb 81189
+    (default), imdb tt0903747 and tmdb 1396. Episode NFOs have titles, aired dates,
+    plots and all three IDs. Actor thumbs were saved.
+  - This confirms that **TMDB supplies the TVDB ID**, which is why the live TMDB+TVDB
+    setup works despite BUG-012.
+  - **No show artwork** (poster/fanart) was written, and that still needs explaining.
+  - BUG-018 was logged from the stale pre-fix Expanse NFO.
 - Live-install issues the owner reported on 2026-11-01 are logged as BUG-013 (TVDB manual
   entry: only the OK-after-failed-Verify defect remains), BUG-014 (TMDB Cancel blocks
   TVDB; workaround verified), BUG-015 (VACUUM crash after the library clean) and

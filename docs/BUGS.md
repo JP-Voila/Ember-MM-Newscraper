@@ -619,3 +619,29 @@ BUG-001 must be re-checked on the fixed build.
 
 **Fix.** Restore the 9 call sites to their pre-d08f4dae form (a revert of those lines
 only; the rest of d08f4dae, the in-app Tag Manager, stays). The callees are not changed.
+
+---
+
+## BUG-018 — Saving an edit dialog with no aired/premiered date writes today's date
+
+- **Reported:** 2026-11-01. **Found by:** L3 run 2 output (incidental)
+- **Status:** open
+- **Content type:** TV episode (confirmed); movie, TV show (same pattern, not confirmed)
+
+**Seen.** `testlib/.../The.Expanse.S01E01.nfo`, saved at 22:35:46 from the empty Edit
+Episode dialog (the pre-fix BUG-017 path), contains `<aired>2026-11-01</aired>`, the day
+of the test. The episode had no aired date.
+
+**Code.** `EmberMediaManager/dlgEdit_TVEpisode.vb:303-310`. When there is no valid aired
+date, the dialog sets `dtpAired.Value = Date.Now` and leaves `Checked` alone (designer
+default `False`, `ShowCheckBox = True`). On save, `If dtpAired.Checked Then .Aired =
+dtpAired.Value` (line 482). The NFO proves the picker ended up checked. Most likely
+setting `Value` checks a `ShowCheckBox` picker (WinForms behaviour, **not verified**).
+Siblings with the same pattern: `dlgEdit_Movie.vb:492` (`dtpPremiered`),
+`dlgEdit_TVShow.vb:425` (`dtpPremiered`).
+
+**Impact.** A fake date ends up in the NFO, so Kodi shows the item as aired or released
+on the day it was edited.
+
+**Likely fix.** Set `Checked = False` after assigning the placeholder value, in all three
+dialogs. Confirm the WinForms behaviour first.
