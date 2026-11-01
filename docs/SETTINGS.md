@@ -108,6 +108,7 @@ are off. Movie sets: no naming scheme is on (§2). All NFO/image file names come
 | Item | Dev default | Owner's install | Evidence |
 |---|---|---|---|
 | TMDB as a **TV** data scraper | Off | **On** (runs before TVDB) | Owner log 2026-10-31: `[ScrapeData_TVEpisode] [Using] TMDB_Data`, then `TVDB_Data` |
+| `TVCleanDB`, `MovieSetCleanDB` | false | **true** (`MovieCleanDB` false) | Owner's `Settings.xml`, 2026-11-01. Every TV/movie scan ends with `Database.Clean` + `VACUUM` (BUG-015) |
 
 The test profile does **not** mirror the live install. TV scraping is tested per
 scraper instead (TEST_STANDARD §8, "Scraper isolation"): TVDB only, then TMDB only, then

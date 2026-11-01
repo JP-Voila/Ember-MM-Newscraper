@@ -486,3 +486,51 @@ Workaround verified by the owner on the live install, 2026-11-01.
 
 Either way, check the movie/movie-set dialogs and the other data scrapers for the same
 pattern (enumerate first).
+
+---
+
+## BUG-015 — "SQL logic error / not an error" crash during Update Library's database clean
+
+- **Reported:** 2026-11-01 (owner, live install)
+- **Status:** investigating (failing step found; trigger not proven)
+- **Content type:** database (TV library update)
+- **Settings:** owner has `TVCleanDB` and `MovieSetCleanDB` **on** (dev default off,
+  SETTINGS.md §4)
+
+**Symptom.** Message box "SQL Logic Error / not an error", reported as an unhandled
+exception. It came right after a rescrape of *Looney Tunes* Season 0 (specials).
+
+**Log** (owner's live log, 2026-11-01 22:14–22:15; paths not copied here):
+
+```
+thread 9   bwTVSeasonScraper  Looney Tunes: Season 0 → [ScrapeData_TVSeason] [No Scraper Results] → Canceled
+thread 6   Update Library scan → Database.Clean (all steps OK) → "Rebulding videodatabase started"
+thread 1   MyApplication_UnhandledException: SQLiteException (0x800007BF): SQL logic error / not an error
+           at SQLiteCommand.ExecuteNonQuery → EmberAPI.Database.Clean → Scanner.bwPrelim_DoWork
+```
+
+**Findings.**
+- The failing statement is the `VACUUM;` at the end of `Database.Clean`
+  (`EmberAPI/clsAPIDatabase.vb` ~723-728). It runs on the shared `_myvideosDBConn` from
+  the scanner's background worker, outside any `Try`. The clean transaction before it
+  had already committed, so only the housekeeping step failed. A failed VACUUM leaves
+  the DB file unchanged (SQLite rolls it back).
+- History: 24 VACUUMs across the owner's logs since 2026-01, 23 completed and 1 failed
+  (this one). It is intermittent.
+- Likely trigger (**not proven**): SQLite refuses VACUUM while another statement is open
+  on the same connection, and the UI thread uses that connection too. "not an error" as
+  the message text is typical of the error text being read after another thread touched
+  the connection. No other thread *logged* anything in the 4 s before the failure, but
+  UI list refreshes don't log.
+- The installed build has an older `Clean(…, Int64 SourceID)` signature than the
+  current code (`List(Of Long)`). The VACUUM block is the same.
+
+**Fix options (not decided).** VACUUM is optional housekeeping. Catch and log a VACUUM
+failure instead of crashing (the clean already succeeded). Or run it only when no other
+DB work is in flight. Other VACUUM sites to cover in the same fix:
+`clsAPIDatabase.vb:1107`, `:5091`, `:5108` (grep `VACUUM`; the known `:724` matched, so
+the pattern works).
+
+**Side note.** Rescraping a *season* (Season 0) with TVDB does nothing by design:
+`TVDB_Data.Scraper_TVSeason` is a stub (WORKLOG "How to read the logs"). To refresh
+specials, scrape the Season 0 *episodes*.
