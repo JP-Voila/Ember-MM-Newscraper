@@ -30,6 +30,9 @@ CLAUDE.md.
 - **TV isolation run 1 (TVDB only) done, 2026-11-01:** TVDB name search is dead
   upstream (BUG-012); by-ID calls still work. BUG-001 confirmed with TVDB alone (silent
   cancel). **Next:** run 2, TMDB only; then run 3, both. Then L2 test project.
+- **TV run 2 (TMDB only)** exposed BUG-017 (an upstream commit inverted the scrape-result
+  checks; every dev-build scrape outcome was wrong). Fixed. **Next:** repeat run 2 on the
+  fixed build, then run 3. Run 1 and BUG-001's dev-build notes predate the fix.
 - Live-install issues the owner reported on 2026-11-01 are logged as BUG-013 (TVDB manual
   entry: only the OK-after-failed-Verify defect remains), BUG-014 (TMDB Cancel blocks
   TVDB; workaround verified), BUG-015 (VACUUM crash after the library clean) and
