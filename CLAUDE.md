@@ -67,9 +67,14 @@ SQLite interop DLLs in `EmberAPI/x86` and `EmberAPI/x64`).
   `scraper.Data.TVDB` and `scraper.Image.TVDB`. It is now maintained here — edit it in
   place and log changes in `External/TheTVDBApi/UPSTREAM.md`. It targets TheTVDB's
   legacy XML API, which TheTVDB has been retiring in favour of API v4.
-- `EmberAPI_Test` is an MSTest project that is **not included in the solution** and is
-  largely stale (references NLog 3.1 / `UnitTestFramework` 10.x). Don't rely on it; if you
-  add tests, say so and note they have not been run.
+- **Unit tests (L2): `EmberAPI.Tests/`**, an MSTest 2.2.10 project in the solution. It
+  builds to its own `EmberAPI.Tests\bin\<Config>\<Platform>\`, not the app folder. Run it
+  after a solution build:
+  ```
+  vstest.console.exe "EmberAPI.Tests\bin\Debug\x64\EmberAPI.Tests.dll" /Platform:x64
+  ```
+  `vstest.console.exe` lives at `C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\Extensions\TestPlatform\`.
+  The old `EmberAPI_Test/` folder is stale and not in the solution. Ignore it.
 - **Testing rules live in [docs/TEST_STANDARD.md](docs/TEST_STANDARD.md):** the four
   layers (build / unit / test library / manual), fixtures, bites, and the bug lane
   (failing test committed before the fix).
@@ -82,6 +87,7 @@ EmberMediaManager/          The WinForms executable: frmMain + all dlg* dialogs
   frmMain.vb                ~19k lines — main window, list views, task orchestration
   dlgEdit_*.vb              Edit dialogs per content type (Movie/Movieset/TVShow/Season/Episode)
   dlgSettings.vb            Settings dialog host; MasterSettingsPanels/ holds panels
+EmberAPI.Tests/             L2 unit tests (MSTest), see docs/TEST_STANDARD.md
 EmberAPI/                   Core library shared by the app and every addon
   clsAPIDatabase.vb         ~6.3k lines — all SQLite access, schema creation & upgrades
   clsAPIModules.vb          Addon discovery/loading (reflection over Modules\*.dll)

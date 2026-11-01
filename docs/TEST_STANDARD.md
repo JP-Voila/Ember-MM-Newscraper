@@ -5,9 +5,10 @@ from the owner's standard in another project, keeping the rules that apply to a 
 WinForms app maintained by one person. [CLAUDE.md](../CLAUDE.md) holds the short rules;
 this file holds the detail and the reasons.
 
-Status: **no working test suite exists yet.** `EmberAPI_Test/` is stale and not in the
-solution (see [INVENTORY.md](INVENTORY.md) §2). §2 describes the suite to build; until it
-builds and runs, every claim of "tested" means manual testing, and must say so.
+Status (2026-11-01): the L2 suite exists: `EmberAPI.Tests/`, in the solution, run with
+`vstest.console.exe` (command in CLAUDE.md "Building and testing"). It is small, so most
+behaviour is still covered only by L3/L4. Say which layer a claim rests on.
+`EmberAPI_Test/` is the stale predecessor, not in the solution.
 
 ---
 

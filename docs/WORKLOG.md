@@ -48,6 +48,11 @@ CLAUDE.md.
   imdb tt3230854 and tmdb 63639. The `S01E03E04.nfo` double episode holds two
   `<episodedetails>` (E03 *Remember the Cant*, E04 *CQB*) with the right dates. The
   stale BUG-018 NFO was overwritten with correct data. Isolation runs are done.
+- **L2 suite added (2026-11-01):** `EmberAPI.Tests/` (MSTest 2.2.10, `packages.config`, in
+  the solution, own `bin\` output). It has 2 `Settings.Load` tests, each bitten (see the
+  commit). **Next:** bug lane for BUG-015 / -016 / -011 / -018, red test first.
+- Owner's roadmap (2026-11-01): get everything working → polish/improve → deploy. The
+  live install is "good enough" meanwhile, so there is no rush.
 - Image picker, owner question: is OK safe while the "loading images" indicators show?
   Yes. OK runs `dlgImgSelect.DoneAndClose`, which disables OK, cancels and **waits for**
   both background workers, then downloads the chosen images at full size on the UI thread
@@ -66,8 +71,8 @@ CLAUDE.md.
       (free under $50k/yr revenue, attribution required). The owner is undecided about
       signing up; option 2 (IMDB id first) needs no key.
 - [ ] Owner's bug list — being recorded in [BUGS.md](BUGS.md) as reported.
-- [ ] Set up testing per TEST_STANDARD: L1 command-line build (needs the 4.8 targeting
-      pack), L2 new MSTest project in the solution, L3 test library + generator script.
+- [x] Set up testing per TEST_STANDARD: L1 command-line build, L2 `EmberAPI.Tests`
+      (2026-11-01, 2 tests), L3 test library + generator script.
 - [ ] Tag Manager must work (owner, 2026-10-31). Approach chosen: in-app Tag Manager.
       BUG-005 fixed (old addon out of the solution); BUG-006 to fix via the bug lane.
 - [ ] L3 first launch on `testlib/` (owner), then capture real NFOs as fixtures.
@@ -81,8 +86,8 @@ CLAUDE.md.
 - [ ] Dead projects on disk, not in the solution: `Addons/scraper.EmberCore.XML`,
       `Addons/scraper.TVDB.Poster`, `Trakttv/` (see INVENTORY §2). Decide whether to
       delete. Low priority.
-- [ ] `EmberAPI_Test` is not in the solution and is stale. Decide whether to revive it.
-      Low priority.
+- [ ] `EmberAPI_Test/` (stale, not in the solution) is superseded by `EmberAPI.Tests/`.
+      Decide whether to delete it. Low priority.
 
 ---
 
