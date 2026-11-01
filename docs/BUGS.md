@@ -57,6 +57,13 @@ the image-select and edit dialogs with nothing in them.
 - A top-level show scrape works because `ScrapeData_TVShow` searches by title, stores
   the IDs, then scrapes the episodes with them.
 
+**L3 test run 1 (2026-11-01, dev build, TVDB only).** *The Expanse* S01E01, right-click →
+(Re)Scrape episode: **nothing visible happens**, no dialog and no message. Log: TVDB
+`Scraper_TVEpisode` `[Start]` → `[Done]` in under 1 ms (no HTTP), the same misleading
+"No valid episode or season number found" warning, then `Canceled scraping`. The empty
+dialogs in the owner's install come from the TMDB path; with TVDB alone the scrape is
+cancelled silently. Same root cause. `testlib` unchanged (`git -C testlib status` clean).
+
 **Fix options (not decided).**
 1. Small: in the episode scrape path, if the show has neither a TMDB nor a TVDB ID,
    stop and tell the user to scrape the show first. No more empty dialogs.
@@ -345,3 +352,60 @@ silently loses every setting (the backup file is kept).
 **Likely fix.** Re-read the file (`File.ReadAllText(configpath)`) in the repair path.
 Test: a `Settings.xml` containing `PrefSize>Xlrg<` should load with `Any`, not with
 defaults.
+
+---
+
+## BUG-012 — TVDB show search always returns "No matches found"
+
+- **Reported:** 2026-11-01. **Found by:** owner, L3 test run 1 (TVDB as the only TV data
+  scraper, dev build)
+- **Status:** investigating (root cause found: upstream API change)
+- **Content type:** TV show
+- **Scrapers enabled:** TVDB only (TV data)
+
+**Symptom.** Scraping *Breaking Bad* from the top level opens the TVDB search dialog with
+"No matches found". The show is never identified, so no data or images are scraped.
+
+**Log** (`EmberMM - Debug - x64\Log\2026-11-01.csv`, 15:22:59–15:23:38). No `ERROR`: the
+search path has no error logging at all, so its absence proves nothing.
+
+```
+[TVDB_Data] [Scraper_TV] [Start]
+[TVDB_Data] [Scraper_TV] [Abort] [Cancelled] Cancelled by user        (owner closed the empty dialog)
+[FanartTV_Image] / [TMDB_Image] / [TVDB_Image] ... [Abort] No TVDB ID exist to search: Breaking Bad
+```
+
+**Root cause.** TheTVDB's legacy XML API is only half retired. Probed directly on
+2026-11-01 (curl, same URLs the vendored client builds):
+
+| Legacy endpoint | Used by | Result |
+|---|---|---|
+| `/api/GetSeries.php?seriesname=…&language=en` | show search by name | **HTTP 200, `<Data></Data>`: empty for every query** (`Breaking Bad`, `Breaking`, `Expanse`) |
+| `/api/{key}/series/81189/en.xml` | — | works (Breaking Bad) |
+| `/api/{key}/series/81189/all/en.zip` | show/episode details, images | works: `en.xml` (62 episodes + 18 specials), `banners.xml`, `actors.xml` |
+| `/api/GetSeriesByRemoteID.php?imdbid=tt0903747` | lookup by IMDB id | works (returns 81189) |
+| `/api/{key}/languages.xml` | languages | works |
+
+The empty search is the server's answer, not a client error: the same request for a
+show that certainly exists returns valid, empty XML, while the by-ID calls for that
+show succeed. Code path: `Addons/scraper.Data.TVDB/Scraper/clsScrapeTVDB.vb:130`
+`SearchTVShowByName` → `External/TheTVDBApi/src/TVDB/Web/WebInterface.cs:345`
+`GetSeriesByName` → zero `Series` → dialog shows no matches.
+
+**Consequence.** TVDB can only scrape a show that already has a TVDB ID, from the NFO,
+from another scraper (e.g. TMDB external IDs), or typed into the search dialog's TVDB ID
+box. This likely explains why the owner's live setup works: TMDB runs first and may
+supply the TVDB ID (not yet verified; TV test run 2/3 will show).
+
+**Also seen (latent).** `SearchTVShowByName` returns `Nothing` when the client returns
+`Nothing`, and both callers then read `r.Matches` (NullReferenceException). Today the
+client only returns `Nothing` for empty arguments, so it is not reachable from this bug.
+
+**Fix options (not decided).**
+1. Fall back to TheTVDB **v4** `/search` for the name search only, keeping the working
+   legacy by-ID calls. v4 needs a v4 API key (and may need a subscriber PIN); probe
+   without a token returns 401.
+2. Search by IMDB id first (`GetSeriesByRemoteID.php`, works) when the show has one,
+   then by name.
+3. Full migration of `External/TheTVDBApi` to v4 (largest; the by-ID endpoints still
+   work today but may be retired too).

@@ -26,14 +26,15 @@ CLAUDE.md.
   removed from the solution (BUG-005). The dev build has **not been launched** yet.
 - **Test library ready:** `tools/New-TestLibrary.ps1` → `testlib/` (git-ignored, own
   nested repo). Dev build launched (after the BUG-010 fix), sources added, Update Library
-  ran. **Next:** untick "Scan Meta Data" (Movies and TV Shows → Scrapers - Data), then TV
-  scraper isolation run 1 (TVDB only). Frame extraction and Trakt/Kodi are already off on
-  a fresh profile. Then L2 test project.
+  ran, "Scan Meta Data" off for Movies and TV.
+- **TV isolation run 1 (TVDB only) done, 2026-11-01:** TVDB name search is dead
+  upstream (BUG-012); by-ID calls still work. BUG-001 confirmed with TVDB alone (silent
+  cancel). **Next:** run 2, TMDB only; then run 3, both. Then L2 test project.
 
 ## Open items
 
-- [ ] TVDB legacy API test result → decide whether to migrate `External/TheTVDBApi` to
-      TheTVDB API v4.
+- [ ] TVDB legacy API: name search dead, by-ID calls work (BUG-012, 2026-11-01). Decide
+      fix: v4 search only, IMDB-id lookup first, or full v4 migration.
 - [ ] Owner's bug list — being recorded in [BUGS.md](BUGS.md) as reported.
 - [ ] Set up testing per TEST_STANDARD: L1 command-line build (needs the 4.8 targeting
       pack), L2 new MSTest project in the solution, L3 test library + generator script.
@@ -106,6 +107,12 @@ file only holds the last download.
 4. Check: log has `[TVDB_Data] [Scraper_TVEpisode]` / `[TVDB_Image] [Scraper]` lines and
    no `ERROR` between them; `Temp\Shows\loaded.zip` timestamp matches and `en.xml` names
    the new show; episode plot/aired/title are filled.
+
+### Result (2026-11-01)
+
+Mixed: `GetSeries.php` (name search) returns empty `<Data></Data>` for every query;
+series XML, `all/en.zip`, `GetSeriesByRemoteID.php` and `languages.xml` all work.
+Details and probe table in BUGS.md BUG-012.
 
 ### Decision
 
@@ -188,6 +195,10 @@ file only holds the last download.
     install, per the owner's log.
   - Metadata scan is on by default.
   - Movie NFO `<set>` uses the plain form (`CollectionsExtendedInfo` false).
+- 2026-11-01: TV isolation run 1 (TVDB only). Episode scrape of an unscraped show
+  cancels silently (BUG-001). Show scrape: "No matches found". Probing the legacy API
+  directly showed name search returns empty XML for every query while by-ID and
+  IMDB-id lookups work: logged BUG-012.
 - `clsAPIHTTP.vb` logs full request URLs on error. The owner ruled API-key leakage a
   non-issue (the built-in keys are already public), so it is not tracked. Only
   end-user-supplied credentials (Kodi password, Trakt token, personal API keys entered
