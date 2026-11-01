@@ -43,6 +43,17 @@ CLAUDE.md.
     setup works despite BUG-012.
   - No show artwork at first: BUG-017 part 2 (37 more inverted image/theme/trailer checks), fixed. After it: poster, fanart, banner, extrafanart, season art and episode thumbs are written with Frodo names.
   - BUG-018 was logged from the stale pre-fix Expanse NFO.
+- **TV run 3 (TMDB first, then TVDB), 2026-11-01 23:04: pass.** *The Expanse* whole show:
+  the chain ran TMDB → TVDB → images → save. `tvshow.nfo` has tvdb 280619 (default),
+  imdb tt3230854 and tmdb 63639. The `S01E03E04.nfo` double episode holds two
+  `<episodedetails>` (E03 *Remember the Cant*, E04 *CQB*) with the right dates. The
+  stale BUG-018 NFO was overwritten with correct data. Isolation runs are done.
+- Image picker, owner question: is OK safe while the "loading images" indicators show?
+  Yes. OK runs `dlgImgSelect.DoneAndClose`, which disables OK, cancels and **waits for**
+  both background workers, then downloads the chosen images at full size on the UI thread
+  ("Downloading Fullsize Image(s)..." appears only at that point). The background
+  workers only load preview thumbnails. Episode/season images are downloaded during the
+  DB save.
 - Live-install issues the owner reported on 2026-11-01 are logged as BUG-013 (TVDB manual
   entry: only the OK-after-failed-Verify defect remains), BUG-014 (TMDB Cancel blocks
   TVDB; workaround verified), BUG-015 (VACUUM crash after the library clean) and
